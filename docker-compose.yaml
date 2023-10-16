@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  app:
+    build: .
+    environment:
+    - CEP_PUBSUB_PROJECT_ID=${CEP_PUBSUB_PROJECT_ID}
+    - CEP_PUBSUB_TOPIC_ID=${CEP_PUBSUB_TOPIC_ID}
+    ports:
+    - 8080:8080
+    # Mount Google CLI ADC to access PubSub
+    volumes:
+    - ~/.config/gcloud:/root/.config/gcloud
+
