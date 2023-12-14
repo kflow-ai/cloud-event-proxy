@@ -5,9 +5,13 @@ services:
     environment:
     - CEP_PUBSUB_PROJECT_ID=${CEP_PUBSUB_PROJECT_ID}
     - CEP_PUBSUB_TOPIC_ID=${CEP_PUBSUB_TOPIC_ID}
+    - CEP_FIREHOSE_DELIVERY_STREAM_ARN=${CEP_FIREHOSE_DELIVERY_STREAM_ARN}
+    - CEP_FIREHOSE_REGION=${CEP_FIREHOSE_REGION}
+    - CEP_DESTINATION_ADAPTER=${CEP_DESTINATION_ADAPTER}
     ports:
     - 8080:8080
-    # Mount Google CLI ADC to access PubSub
+    # Mount Google CLI ADC to access PubSub and AWS CLI creds to access Firehose
     volumes:
     - ~/.config/gcloud:/root/.config/gcloud
+    - ~/.aws:/root/.aws
 

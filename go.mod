@@ -4,6 +4,7 @@ go 1.21.3
 
 require (
 	cloud.google.com/go/pubsub v1.33.0
+	github.com/aws/aws-sdk-go v1.46.3
 	github.com/cloudevents/sdk-go/v2 v2.14.0
 )
 
@@ -19,6 +20,7 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.11.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect

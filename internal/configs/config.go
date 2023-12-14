@@ -22,8 +22,22 @@ const (
 	// ConfigEnvPrefix is the prefix for environment variables.
 	ConfigEnvPrefix = "CEP_"
 
-	// ConfigEnvPrefixPubSub is the prefix for PubSub environment variables.
+	// ConfigEnvPrefixPubSub is the prefix for Google PubSub environment variables.
 	ConfigEnvPrefixPubSub = "CEP_PUBSUB_"
+
+	// ConfigEnvPrefixFirehose is the prefix for Kinesis Data Firehose environment variables.
+	ConfigEnvPrefixFirehose = "CEP_FIREHOSE_"
+)
+
+// DestinationAdapter is an enum of supported destination adapters.
+type DestinationAdapter string
+
+const (
+	// DestinationAdapterPubSub is the PubSub destination adapter.
+	DestinationAdapterPubSub DestinationAdapter = "pubsub"
+
+	// DestinationAdapterFirehose is the Kinesis Data Firehose destination adapter.
+	DestinationAdapterFirehose DestinationAdapter = "firehose"
 )
 
 // Config is the configuration for the CloudEventProxy.
@@ -34,8 +48,14 @@ type Config struct {
 	// LogLevel is the log level to use.
 	LogLevel string
 
+	// DestinationAdapter is the destination adapter configuration.
+	DestinationAdapter DestinationAdapter
+
 	// PubSub is the PubSub configuration.
 	PubSub *PubSubConfig
+
+	// Firehose is the Kinesis Data Firehose configuration.
+	Firehose *FirehoseConfig
 }
 
 // PubSubConfig is the configuration for the PubSub client.
@@ -45,6 +65,11 @@ type PubSubConfig struct {
 
 	// TopicID is the GCP PubSub topic ID.
 	TopicID string
+}
+
+type FirehoseConfig struct {
+	// DeliveryStreamARN is the ARN of the Kinesis Data Firehose delivery stream.
+	DeliveryStreamARN string
 }
 
 func Load() (*Config, error) {
@@ -65,16 +90,40 @@ func Load() (*Config, error) {
 		logLevel = DefaultLogLevel
 	}
 
-	pubSub, err := LoadPubSub()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load PubSub configuration: %w", err)
+	adapter := os.Getenv(ConfigEnvPrefix + "DESTINATION_ADAPTER")
+	if adapter == "" {
+		return nil, fmt.Errorf("missing %s", ConfigEnvPrefix+"DESTINATION_ADAPTER")
 	}
 
-	return &Config{
-		ListenPort: listenPort,
-		LogLevel:   logLevel,
-		PubSub:     pubSub,
-	}, nil
+	var config *Config
+
+	switch adapter {
+	case string(DestinationAdapterPubSub):
+		pubSub, err := LoadPubSub()
+		if err != nil {
+			return nil, fmt.Errorf("failed to load PubSub configuration: %w", err)
+		}
+		config = &Config{
+			ListenPort:         listenPort,
+			LogLevel:           logLevel,
+			DestinationAdapter: DestinationAdapterPubSub,
+			PubSub:             pubSub,
+		}
+	case string(DestinationAdapterFirehose):
+		firehose, err := LoadFirehose()
+		if err != nil {
+			return nil, fmt.Errorf("failed to load Kinesis Data Firehose configuration: %w", err)
+		}
+		config = &Config{
+			ListenPort:         listenPort,
+			LogLevel:           logLevel,
+			DestinationAdapter: DestinationAdapterFirehose,
+			Firehose:           firehose,
+		}
+	default:
+		return nil, fmt.Errorf("invalid %s: %s", ConfigEnvPrefix+"DESTINATION_ADAPTER", adapter)
+	}
+	return config, nil
 }
 
 func LoadPubSub() (*PubSubConfig, error) {
@@ -91,5 +140,16 @@ func LoadPubSub() (*PubSubConfig, error) {
 	return &PubSubConfig{
 		ProjectID: projectID,
 		TopicID:   topicID,
+	}, nil
+}
+
+func LoadFirehose() (*FirehoseConfig, error) {
+	deliveryStreamARN := os.Getenv(ConfigEnvPrefixFirehose + "DELIVERY_STREAM_ARN")
+	if deliveryStreamARN == "" {
+		return nil, fmt.Errorf("missing %s", ConfigEnvPrefixFirehose+"DELIVERY_STREAM_ARN")
+	}
+
+	return &FirehoseConfig{
+		DeliveryStreamARN: deliveryStreamARN,
 	}, nil
 }
