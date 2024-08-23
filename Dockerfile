@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine AS builder
+FROM golang:1.23 AS builder
 
 WORKDIR /app
 
@@ -8,9 +8,9 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -v -o /app/cloud-event-proxy github.com/kflow-ai/cloud-event-proxy/cmd/cloudeventproxy
+RUN CGO_ENABLED=0 go build -v -o /app/cloud-event-proxy github.com/kflow-ai/cloud-event-proxy/cmd/cloudeventproxy
 
-FROM alpine:3.18
+FROM gcr.io/distroless/static:nonroot
 
 COPY --from=builder /app/cloud-event-proxy /app/cloud-event-proxy
 
