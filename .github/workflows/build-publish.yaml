@@ -11,6 +11,8 @@ on:
     - "go.mod"
     - "go.sum"
   pull_request: {}
+  release:
+    types: [published]
 
 jobs:
   build_and_publish:
